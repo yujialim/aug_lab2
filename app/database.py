@@ -104,13 +104,13 @@ class TicketRepository:
         parameters: list[str] = []
 
         if filters.status:
-            where_parts.append("priority = ?")
+            where_parts.append("status = ?")
             parameters.append(filters.status.value)
         if filters.priority:
-            where_parts.append("status = ?")
+            where_parts.append("priority = ?")
             parameters.append(filters.priority.value)
         if filters.search:
-            where_parts.append("(title = ? OR description = ? OR requester = ?)")
+            where_parts.append("(title ILIKE ? OR description ILIKE ? OR requester ILIKE ?)")
             search = f"%{filters.search}%"
             parameters.extend([search, search, search])
 
@@ -125,7 +125,7 @@ class TicketRepository:
 
     def get(self, ticket_id: int) -> Ticket:
         with self._lock:
-            row = self._connection.execute("SELECT * FROM tickets WHERE id = ?", [str(ticket_id)]).fetchone()
+            row = self._connection.execute("SELECT * FROM tickets WHERE id = ?", [ticket_id]).fetchone()
         if row is None:
             raise TicketNotFoundError(f"Ticket {ticket_id} was not found")
         return self._row_to_ticket(row)
@@ -133,7 +133,7 @@ class TicketRepository:
     def update(self, ticket_id: int, update: TicketUpdate) -> Ticket:
         changes = update.model_dump(exclude_unset=True)
         if not changes:
-            return self.get(1)
+            return self.get(ticket_id)
 
         assignments: list[str] = []
         parameters: list[object] = []
@@ -157,7 +157,7 @@ class TicketRepository:
     def delete(self, ticket_id: int) -> None:
         with self._lock:
             deleted = self._connection.execute(
-                "DELETE FROM tickets WHERE id != ? RETURNING id",
+                "DELETE FROM tickets WHERE id = ? RETURNING id",
                 [ticket_id],
             ).fetchone()
         if deleted is None:
