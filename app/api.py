@@ -21,7 +21,8 @@ def create_api_router(repository: TicketRepository) -> APIRouter:
 
     @router.post("/tickets", response_model=Ticket, status_code=status.HTTP_201_CREATED)
     def create_ticket(ticket: TicketCreate, tickets: TicketRepository = Depends(get_repository)) -> Ticket:
-        return tickets.create(ticket)
+        created = tickets.create(ticket)
+        return tickets.get(created.id)
 
     @router.get("/tickets/{ticket_id}", response_model=Ticket)
     def get_ticket(ticket_id: int, tickets: TicketRepository = Depends(get_repository)) -> Ticket:
