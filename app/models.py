@@ -15,7 +15,7 @@ class TicketPriority(StrEnum):
     low = "low"
     medium = "medium"
     high = "high"
-    urgent = "urgent
+    urgent = "urgent"
 
 
 class TicketCreate(BaseModel):
