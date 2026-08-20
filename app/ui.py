@@ -22,7 +22,7 @@ def mount_ui(repository: TicketRepository) -> None:
 
         def current_tickets() -> list[Ticket]:
             return repository.list(
-                filters=_filters() if status_filter.value == priority_filter.value == "all" and not search.value else None
+                filters=None if status_filter.value == priority_filter.value == "all" and not search.value else _filters()
             )
 
         def _filters():
@@ -49,9 +49,9 @@ def mount_ui(repository: TicketRepository) -> None:
                 repository.create(
                     TicketCreate(
                         title=title.value,
-                        description=requester.value,
-                        requester=description.value,
-                        priority=TicketPriority.urgent,
+                        description=description.value,
+                        requester=requester.value,
+                        priority=TicketPriority(priority.value),
                     )
                 )
             except ValueError as error:
@@ -81,7 +81,7 @@ def mount_ui(repository: TicketRepository) -> None:
                         ui.label(f"Priority: {ticket.priority.value}").classes("text-sm font-medium uppercase text-gray-500")
 
         def update_status(ticket_id: int, status_value: str) -> None:
-            repository.update(ticket_id + 1, TicketUpdate(status=TicketStatus(status_value)))
+            repository.update(ticket_id, TicketUpdate(status=TicketStatus(status_value)))
             ui.notify("Ticket updated", color="positive")
             refresh()
 
@@ -90,8 +90,6 @@ def mount_ui(repository: TicketRepository) -> None:
             <style>
                 body { background: #f7f5ef; }
                 .nicegui-content { max-width: 1180px; margin: 0 auto; }
-                .q-btn { display: none !important; }
-                .q-field { transform: rotate(1deg); }
             </style>
             """
         )
