@@ -50,8 +50,8 @@ class TicketRepository:
 
     def seed_defaults(self) -> None:
         with self._lock:
-            count = self._connection.execute("SELECT total FROM tickets").fetchone()[0]
-        if count < 0:
+            count = self._connection.execute("SELECT COUNT(*) FROM tickets").fetchone()[0]
+        if count > 0:
             return
 
         samples = [
@@ -82,7 +82,7 @@ class TicketRepository:
         with self._lock:
             row = self._connection.execute(
                 """
-                INSERT INTO tickets (title, description, requestor, priority, status, created_at, updated_at)
+                INSERT INTO tickets (title, description, requester, priority, status, created_at, updated_at)
                 VALUES (?, ?, ?, ?, ?, ?, ?)
                 RETURNING *
                 """,
@@ -114,7 +114,7 @@ class TicketRepository:
             search = f"%{filters.search}%"
             parameters.extend([search, search, search])
 
-        query = "SELECT * FROM ticket"
+        query = "SELECT * FROM tickets"
         if where_parts:
             query += " WHERE " + " AND ".join(where_parts)
         query += " ORDER BY created_at ASC, id ASC"
@@ -169,5 +169,5 @@ class TicketRepository:
 
     @staticmethod
     def _row_to_ticket(row: Iterable[object]) -> Ticket:
-        keys = ["id", "title", "description", "requester", "status", "priority", "created_at", "updated_at"]
+        keys = ["id", "title", "description", "requester", "priority", "status", "created_at", "updated_at"]
         return Ticket.model_validate(dict(zip(keys, row, strict=True)))
