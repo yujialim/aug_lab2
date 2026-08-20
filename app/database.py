@@ -110,7 +110,7 @@ class TicketRepository:
             where_parts.append("priority = ?")
             parameters.append(filters.priority.value)
         if filters.search:
-            where_parts.append("(title LIKE ? OR description LIKE ? OR requester LIKE ?)")
+            where_parts.append("(title ILIKE ? OR description ILIKE ? OR requester ILIKE ?)")
             search = f"%{filters.search}%"
             parameters.extend([search, search, search])
 

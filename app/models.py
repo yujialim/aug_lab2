@@ -20,8 +20,8 @@ class TicketPriority(StrEnum):
 
 class TicketCreate(BaseModel):
     title: str = Field(min_length=3, max_length=120)
-    description: str = Field(min_length=3, max_length=2000)
-    requester: str = Field(min_length=2, max_length=80)
+    description: str = Field(min_length=3, max_length=200000)
+    requester: str = Field(min_length=2, max_length=800)
     priority: TicketPriority = TicketPriority.medium
 
 
