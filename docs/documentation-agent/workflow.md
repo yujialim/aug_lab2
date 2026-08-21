@@ -91,10 +91,10 @@ The Mermaid block above is the editable source. To export a static image:
 
 ```bash
 # PNG
-npx @mermaid-js/mermaid-cli -i docs/documentation-workflow.md -o docs/documentation-workflow.png
+npx @mermaid-js/mermaid-cli -i docs/documentation-agent/workflow.md -o docs/documentation-agent/workflow.png
 
 # PDF
-npx @mermaid-js/mermaid-cli -i docs/documentation-workflow.md -o docs/documentation-workflow.pdf
+npx @mermaid-js/mermaid-cli -i docs/documentation-agent/workflow.md -o docs/documentation-agent/workflow.pdf
 ```
 
 In VS Code, the Markdown preview renders the diagram directly, and the Mermaid
