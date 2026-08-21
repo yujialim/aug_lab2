@@ -1,0 +1,10 @@
+# Python
+__pycache__/
+*.pyc
+
+# Documentation Agent pipeline artifacts (generated)
+docs/sphinx/_build/
+docs/sphinx/*.rst
+docs/sphinx/conf.py
+docs/sphinx/doc_agent_run.log
+docs/sphinx/pipeline_run.json

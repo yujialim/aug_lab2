@@ -26,6 +26,36 @@ You are the **Documentation Agent**. Your job is to bring engineering documentat
 5. Apply the smallest edits needed to bring the documentation in line with the code. Preserve existing tone and structure.
 6. Never delete a documented section without recording the removal in the output.
 
+## Automated workflow (docstrings → Sphinx)
+
+When the task is to generate or refresh **API reference documentation from source**
+(docstrings + Sphinx) rather than review prose, drive the five-phase workflow through
+the `doc_agent` pipeline. The pipeline is a state machine — each phase must succeed (or
+be a non-fatal warning) before the next begins, and docstrings are always written
+*before* Sphinx runs.
+
+| Phase | Agent action | Pipeline state | Tool call |
+|-------|--------------|----------------|-----------|
+| 1 · Scope identification | Choose the source package to document. | `Phase.SCOPE` | discover `*.py` files under the target path |
+| 2 · File / logic analysis | Load code and find undocumented objects. | `Phase.ANALYSIS` | `ast`-based gap analysis (`source-code-context` skill) |
+| 3 · Inline documentation | Insert docstrings for every gap. | `Phase.INLINE_DOCS` | `docstrings.apply_docstrings` (`edit`) |
+| 4 · Sphinx automation | Scaffold and build the docs site. | `Phase.SPHINX` | `sphinx-apidoc` + `sphinx-build` |
+| 5 · Review & maintenance | Verify no gaps remain; loop if drift. | `Phase.REVIEW` | re-run gap analysis |
+
+Invoke the pipeline (Sphinx generation needs shell, so this step is delegated to the
+automation entry point rather than run inline by the agent):
+
+```bash
+python -m doc_agent --path sample_project --docs-dir docs/sphinx --project "Calculator"
+```
+
+Every phase is wrapped in error handling and structured logging. Failures are written to
+`docs/sphinx/doc_agent_run.log` and a machine-readable summary to
+`docs/sphinx/pipeline_run.json`. Missing Sphinx tooling is a **warning** (docstrings are
+still applied); an unparseable file or a hard Sphinx build error is a **failure** that
+stops the run. See [docs/documentation-agent/integration.md](../../docs/documentation-agent/integration.md)
+for details.
+
 ## Output format
 
 - **Scope** — which documents were reviewed.

@@ -1,3 +1,5 @@
+"""FastAPI router exposing ticket CRUD endpoints under ``/api``."""
+
 from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 
 from app.database import TicketNotFoundError, TicketRepository
@@ -5,9 +7,11 @@ from app.models import Ticket, TicketCreate, TicketFilters, TicketPriority, Tick
 
 
 def create_api_router(repository: TicketRepository) -> APIRouter:
+    """Build and return the ticket API router bound to ``repository``."""
     router = APIRouter(prefix="/api", tags=["tickets"])
 
     def get_repository() -> TicketRepository:
+        """Dependency that supplies the shared ticket repository."""
         return repository
 
     @router.get("/tickets", response_model=list[Ticket])
@@ -17,14 +21,17 @@ def create_api_router(repository: TicketRepository) -> APIRouter:
         search: str | None = None,
         tickets: TicketRepository = Depends(get_repository),
     ) -> list[Ticket]:
+        """List tickets, optionally filtered by status, priority, or search text."""
         return tickets.list(TicketFilters(status=status_filter, priority=priority, search=search))
 
     @router.post("/tickets", response_model=Ticket, status_code=status.HTTP_201_CREATED)
     def create_ticket(ticket: TicketCreate, tickets: TicketRepository = Depends(get_repository)) -> Ticket:
+        """Create a new ticket and return it."""
         return tickets.create(ticket)
 
     @router.get("/tickets/{ticket_id}", response_model=Ticket)
     def get_ticket(ticket_id: int, tickets: TicketRepository = Depends(get_repository)) -> Ticket:
+        """Return a ticket by id, or respond 404 if it does not exist."""
         try:
             return tickets.get(ticket_id)
         except TicketNotFoundError as error:
@@ -36,6 +43,7 @@ def create_api_router(repository: TicketRepository) -> APIRouter:
         update: TicketUpdate,
         tickets: TicketRepository = Depends(get_repository),
     ) -> Ticket:
+        """Apply a partial update to a ticket, or respond 404 if it is missing."""
         try:
             return tickets.update(ticket_id, update)
         except TicketNotFoundError as error:
@@ -43,6 +51,7 @@ def create_api_router(repository: TicketRepository) -> APIRouter:
 
     @router.delete("/tickets/{ticket_id}", status_code=status.HTTP_204_NO_CONTENT)
     def delete_ticket(ticket_id: int, tickets: TicketRepository = Depends(get_repository)) -> Response:
+        """Delete a ticket and return 204, or respond 404 if it is missing."""
         try:
             tickets.delete(ticket_id)
         except TicketNotFoundError as error:
